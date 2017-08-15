@@ -1,0 +1,49 @@
+allprojects {
+    group 'wxmlabs'
+    version '1.0'
+
+    ext {
+        SNAPSHOT = System.properties["wxmlabs.build"] != "release" // -Dwxmlabs.build=release to upload release
+    }
+    version = SNAPSHOT ? "$version-SNAPSHOT" : version
+
+    // 使用国内wrapper镜像地址
+    wrapper.doFirst {
+        distributionUrl = "${wrapperMirror}/gradle-${gradleVersion}-bin.zip"
+    }
+}
+subprojects {
+    apply plugin: 'java'
+
+    //noinspection GroovyUnusedAssignment
+    sourceCompatibility = 1.7
+
+    repositories {
+        mavenLocal()
+        maven { url centralMirror }
+        maven { url jcenterMirror }
+        mavenCentral()
+        jcenter()
+    }
+
+    ext {
+        needMock = false
+        needPowerMock = false
+    }
+
+    dependencies {
+        testCompile "junit:junit:4.12"
+        if (needMock || needPowerMock) {
+            testCompile "org.mockito:mockito-core:2.7.22"
+        }
+        if (needPowerMock) {
+            testCompile "org.powermock:powermock-module-junit4:1.6.6"
+            testCompile "org.powermock:powermock-api-mockito:1.6.6"
+        }
+    }
+
+    // 解决文件编码问题
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}
